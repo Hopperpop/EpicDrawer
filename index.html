@@ -4,7 +4,7 @@
         <script type="text/javascript" src="js/epicycles.js"></script>
         <script type="text/javascript" src="js/stats.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <title>Epicycles</title>
+        <title>Epicycle drawer</title>
         <style>
             * { margin:0; padding:0; } /* to remove the top and left whitespace */
             html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
@@ -21,9 +21,12 @@
                                 duration:10,
                                 colorLine:"#c0392b",
                                 colorCircle:"#2980b9",
+                                colorPainting:"#111",
                                 backgroundColor:"#eee",
+                                colorDot:"#c0392b",
                                 line:true,
                                 circle:true,
+                                dot:true,
                                 drawing:"",
                                 clear:function(){
                                   painting.clear();
@@ -36,7 +39,8 @@
                 var drawings;
                 var preTime;
                 var animation = 0; // 1 for full revolution
-                var painting;
+                var painting = new Painting();;
+                var scaling = 1;
 
                 window.onload = function(){
 
@@ -61,15 +65,18 @@
                     document.body.appendChild( stats.dom );
 
                     //create control gui//
-                    gui.add(settings,"drawing",Object.keys(drawings)).name("Drawing");
-                    GuiHarm = gui.add(settings,"harmonics",1,drawings[settings.drawing].harmonics).step(1).name("Harmonics");
+                    var GuiDrawing = gui.add(settings,"drawing",Object.keys(drawings)).name("Drawing");
+                    var GuiHarm = gui.add(settings,"harmonics",1,drawings[settings.drawing].harmonics).step(1).name("Harmonics");
                     gui.add(settings,"duration",1,100).name("Duration");
                     var f1 = gui.addFolder('Appearance');
                     f1.add(settings,"line").name("Draw lines");
                     f1.add(settings,"circle").name("Draw circles");
+                    f1.add(settings,"dot").name("Draw dot");
                     var f1 = gui.addFolder('Colors');
                     f1.addColor(settings,"colorLine").name("Line");
                     f1.addColor(settings,"colorCircle").name("Circle");
+                    f1.addColor(settings,"colorDot").name("Dot");
+                    var GuiPaintColor = f1.addColor(settings,"colorPainting").name("Drawing");
                     gui.add(settings,"clear").name("Reset");
                     var bgColor = f1.addColor(settings,"backgroundColor").name('Background');
 
@@ -82,6 +89,17 @@
                         painting.calcPoints(drawings[settings.drawing]);
                         settings.clear();
                     });
+
+                    GuiPaintColor.onChange(function(value) {
+                        painting.forceRedraw = true;
+                    });
+                    GuiDrawing.onFinishChange(function(value){
+                        painting.calcPoints(drawings[settings.drawing]);
+                        settings.clear();
+                        GuiHarm.max = drawings[settings.drawing].harmonics;
+                    });
+
+
                     //Resize event//
                     window.addEventListener('resize', resizeCanvas, false);
 
@@ -92,13 +110,13 @@
                             canvas = document.getElementById('canvasDrawing'),
                             canvas.width = window.innerWidth;
                             canvas.height = window.innerHeight;
-                            resetAnimation();
+                            painting.calcPoints(drawings[settings.drawing]);
+                            settings.clear();
                     }
                     resizeCanvas();
 
                     //start drawing//
                     preTime = new Date();
-                    painting = new Painting();
                     painting.calcPoints(drawings[settings.drawing]);
                     painting.clear();
                     draw();

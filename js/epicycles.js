@@ -16,6 +16,25 @@ function drawLine(ctx,x,y,xx,yy){
     ctx.stroke();
 }
 
+function drawPainting(ctx,x,y,xx,yy){
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = settings.colorPainting;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(xx,yy);
+    ctx.stroke();
+}
+
+function drawDot(ctx,x,y){
+    ctx.fillStyle  = settings.colorDot;
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+}
+
 function drawSystem(ctx,phi,amp,ang){
     //amplitudes length must be even
     var spiralID = amp.length / 2;
@@ -33,14 +52,14 @@ function drawSystem(ctx,phi,amp,ang){
             freq = - freq;
         }
 
-        var dx = amp[spiralID] * Math.cos(phi*freq + ang[spiralID]);
-        var dy = -amp[spiralID] * Math.sin(phi*freq + ang[spiralID]);
-        if(settings.circle){drawCircle(ctx,x,y,amp[spiralID]);}
+        var dx = amp[spiralID] * Math.cos(phi*freq + ang[spiralID]) * scaling;
+        var dy = -amp[spiralID] * Math.sin(phi*freq + ang[spiralID]) * scaling;
+        if(settings.circle){drawCircle(ctx,x,y,amp[spiralID]*scaling);}
         if(settings.line){drawLine(ctx,x,y,x+dx,y+dy);}
         x += dx;
         y += dy;
     }
-
+    if(settings.dot){drawDot(ctx,x,y);}
 }
 
 function Painting(){
@@ -49,9 +68,11 @@ function Painting(){
     this.index = 0;
     this.xpoints = [];
     this.ypoints = [];
+    this.forceRedraw = true;
 
     this.calcPoints = function(drawing){
-        var points = Math.round(drawing.length/2);
+        scaling = Math.min(this.canvas.width / drawings[settings.drawing].xsize * 0.8, this.canvas.height / drawings[settings.drawing].ysize * 0.8);
+        var points = Math.round(drawing.length*scaling/2);
         console.log(points);
         this.xpoints.length = points + 1;
         this.ypoints.lenght = points +1;
@@ -70,17 +91,21 @@ function Painting(){
                     spiralID -= i;
                     freq = - freq;
                 }
-                this.xpoints[j] += drawing.amplitudes[spiralID] * Math.cos(phi*freq + drawing.phase[spiralID]);
-                this.ypoints[j] += -drawing.amplitudes[spiralID] * Math.sin(phi*freq + drawing.phase[spiralID]);
+                this.xpoints[j] += drawing.amplitudes[spiralID] * Math.cos(phi*freq + drawing.phase[spiralID]) * scaling;
+                this.ypoints[j] += -drawing.amplitudes[spiralID] * Math.sin(phi*freq + drawing.phase[spiralID]) * scaling;
             }
         }
     }
 
     this.draw = function(animation){
+        if (this.forceRedraw){
+            this.forceRedraw = false;
+            this.clear();
+        }
         var newIndex = Math.round(this.xpoints.length * Math.min(animation,1));
         if (newIndex != this.index){
             for(; this.index < newIndex ; this.index++){
-                drawLine(this.ctx,this.xpoints[this.index],this.ypoints[this.index],this.xpoints[this.index+1],this.ypoints[this.index+1]);
+                drawPainting(this.ctx,this.xpoints[this.index],this.ypoints[this.index],this.xpoints[this.index+1],this.ypoints[this.index+1]);
             }
         }
 
