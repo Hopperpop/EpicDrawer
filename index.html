@@ -1,0 +1,105 @@
+<html>
+    <head>
+        <script type="text/javascript" src="js/dat.gui.min.js"></script>
+        <script type="text/javascript" src="js/epicycles.js"></script>
+        <script type="text/javascript" src="js/stats.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <title>Epicycles</title>
+        <style>
+            * { margin:0; padding:0; } /* to remove the top and left whitespace */
+            html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
+            canvas { display:block; } /* To remove the scrollbars */
+            /* to show the canvas bounds */
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+
+        <script>
+                var settings = {harmonics:10,duration:10,colorLine:"#c0392b",colorCircle:"#2980b9",backgroundColor:"#eee",line:true,circle:true,drawing:""};
+                var gui = new dat.GUI();
+                var stats = new Stats();
+                var drawings;
+                var preTime;
+                var animation = 0; // 1 for full revolution
+
+                window.onload = function(){
+
+                    //get drawings
+                    drawings = (function () {
+                        var json = null;
+                        $.ajax({
+                            'async': false,
+                            'global': false,
+                            'url': "json/drawings.json",
+                            'dataType': "json",
+                            'success': function (data) {
+                                json = data;
+                            }
+                        });
+                        return json;
+                    })();
+                    settings.drawing = Object.keys(drawings)[0];
+
+                    //create stat gui//
+                    stats.showPanel( 0 );
+                    document.body.appendChild( stats.dom );
+
+                    //create control gui//
+                    gui.add(settings,"drawing",Object.keys(drawings)).name("Drawing");
+                    GuiHarm = gui.add(settings,"harmonics",1,drawings[settings.drawing].harmonics).step(1).name("Harmonics");
+                    gui.add(settings,"duration",1,100).name("Duration");
+                    var f1 = gui.addFolder('Appearance');
+                    f1.add(settings,"line").name("Draw lines");
+                    f1.add(settings,"circle").name("Draw circles");
+                    var f1 = gui.addFolder('Colors');
+                    f1.addColor(settings,"colorLine").name("Line");
+                    f1.addColor(settings,"colorCircle").name("Circle");
+                    var bgColor = f1.addColor(settings,"backgroundColor").name('Background');
+
+                    bgColor.onChange(function(value) {
+                      document.getElementById("canvas").style.background = value;
+                    });
+
+                    //Resize event//
+                    var canvas = document.getElementById('canvas'),
+                        context = canvas.getContext('2d');
+
+                    window.addEventListener('resize', resizeCanvas, false);
+
+                    function resizeCanvas() {
+                            canvas.width = window.innerWidth;
+                            canvas.height = window.innerHeight;
+                            resetAnimation();
+                    }
+                    resizeCanvas();
+
+                    //start drawing//
+                    preTime = new Date();
+                    draw();
+                }
+
+                //main draw function
+                function draw(){
+                    var ctx = document.getElementById('canvas').getContext('2d');
+
+                    stats.begin();
+                        var time = new Date();
+                        var dt = (time.getTime() - preTime.getTime()) / 1000;
+                        preTime = time;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        animation += dt/settings.duration;
+                        drawSystem(ctx,Math.PI * 2 * animation,drawings[settings.drawing].amplitudes,drawings[settings.drawing].phase);
+                    stats.end();
+
+                    window.requestAnimationFrame(draw);
+                }
+
+                //reset animation
+                function resetAnimation(){
+                    //animation = 0;
+                }
+
+        </script>
+    </body>
+</html>
