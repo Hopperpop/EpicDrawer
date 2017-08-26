@@ -17,7 +17,7 @@
         <canvas id="canvasDrawing" style="z-index:-1"></canvas>
 
         <script>
-                var settings = {harmonics:1,
+                var settings = {harmonics:2,
                                 duration:10,
                                 colorLine:"#c0392b",
                                 colorCircle:"#2980b9",
@@ -28,6 +28,7 @@
                                 circle:true,
                                 dot:true,
                                 drawing:"",
+                                autoinc:true,
                                 clear:function(){
                                   painting.clear();
                                   animation = 0;
@@ -68,6 +69,7 @@
                     var GuiDrawing = gui.add(settings,"drawing",Object.keys(drawings)).name("Drawing");
                     var GuiHarm = gui.add(settings,"harmonics",1,drawings[settings.drawing].harmonics).step(1).name("Harmonics");
                     gui.add(settings,"duration",1,100).name("Duration");
+                    gui.add(settings,"autoinc").name("Auto increase");
                     var f1 = gui.addFolder('Appearance');
                     f1.add(settings,"line").name("Draw lines");
                     f1.add(settings,"circle").name("Draw circles");
@@ -94,6 +96,12 @@
                         painting.forceRedraw = true;
                     });
                     GuiDrawing.onFinishChange(function(value){
+                        if (settings.autoinc){
+                          settings.harmonics = 2;
+                          for (var i in gui.__controllers) {
+                            gui.__controllers[i].updateDisplay();
+                          }
+                        }
                         painting.calcPoints(drawings[settings.drawing]);
                         settings.clear();
                         GuiHarm.max = drawings[settings.drawing].harmonics;
@@ -133,8 +141,18 @@
                         preTime = time;
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         animation += dt/settings.duration;
-                        drawSystem(ctx,Math.PI * 2 * animation,drawings[settings.drawing].amplitudes,drawings[settings.drawing].phase);
+                        drawSystem(ctx,Math.PI * 2 * animation,drawings[settings.drawing].amplitudes,drawings[settings.drawing].phase,drawings[settings.drawing].xoffset,drawings[settings.drawing].yoffset);
                         painting.draw(animation);
+                        if (animation > 1 && drawings[settings.drawing].harmonics > settings.harmonics && settings.autoinc){
+                          animation = 0;
+                          settings.harmonics = Math.min( settings.harmonics*2 ,drawings[settings.drawing].harmonics);
+                          for (var i in gui.__controllers) {
+                            gui.__controllers[i].updateDisplay();
+                          }
+                          painting.calcPoints(drawings[settings.drawing]);
+                          painting.forceRedraw = true;
+                          preTime = new Date();
+                        }
                     stats.end();
 
                     window.requestAnimationFrame(draw);

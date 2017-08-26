@@ -35,12 +35,12 @@ function drawDot(ctx,x,y){
     ctx.stroke();
 }
 
-function drawSystem(ctx,phi,amp,ang){
+function drawSystem(ctx,phi,amp,ang,xoff,yoff){
     //amplitudes length must be even
     var spiralID = amp.length / 2;
     var freq = 0;
-    var x = window.innerWidth/2;
-    var y = window.innerHeight/2;
+    var x = window.innerWidth/2 + xoff * scaling;
+    var y = window.innerHeight/2 - yoff * scaling;
 
     for (i = 0; i < (Math.min(amp.length,settings.harmonics*2)); i++){
 
@@ -71,17 +71,17 @@ function Painting(){
     this.forceRedraw = true;
 
     this.calcPoints = function(drawing){
-        scaling = Math.min(this.canvas.width / drawings[settings.drawing].xsize * 0.8, this.canvas.height / drawings[settings.drawing].ysize * 0.8);
+        scaling = Math.min(window.innerWidth / drawings[settings.drawing].xsize * 0.8, window.innerHeight / drawings[settings.drawing].ysize * 0.8);
         var points = Math.round(drawing.length*scaling/2);
         console.log(points);
         this.xpoints.length = points + 1;
-        this.ypoints.lenght = points +1;
+        this.ypoints.lenght = points + 1;
         for (j = 0; j <= points; j++){
             var phi = Math.PI * 2 * j / points;
             var freq = 0;
             var spiralID = drawing.amplitudes.length / 2;
-            this.xpoints[j] = window.innerWidth/2;
-            this.ypoints[j] = window.innerHeight/2;
+            this.xpoints[j] = window.innerWidth/2 + drawing.xoffset * scaling;
+            this.ypoints[j] = window.innerHeight/2 - drawing.yoffset * scaling;
 
             for (i = 0; i < (Math.min(drawing.amplitudes.length,settings.harmonics*2)); i++){
                 if (i%2 == 0){
@@ -95,6 +95,25 @@ function Painting(){
                 this.ypoints[j] += -drawing.amplitudes[spiralID] * Math.sin(phi*freq + drawing.phase[spiralID]) * scaling;
             }
         }
+        /**
+        var xmax = Math.max(...this.xpoints);
+        var xmin = Math.min(...this.xpoints);
+        var ymax = Math.max(...this.ypoints);
+        var ymin = Math.min(...this.ypoints);
+        console.log(ymin + " " + ymax + " " + window.innerHeight);
+
+        drawing.xoffset = window.innerWidth/2 - (xmax + xmin)/2;
+        drawing.yoffset = window.innerHeight/2 - (ymax + ymin)/2;
+        for (j = 0; j <= points; j++){
+            this.xpoints[j] = this.xpoints[j] + drawing.xoffset;
+            this.ypoints[j] = this.ypoints[j] + drawing.yoffset;
+        }
+         xmax = Math.max(...this.xpoints);
+         xmin = Math.min(...this.xpoints);
+         ymax = Math.max(...this.ypoints);
+         ymin = Math.min(...this.ypoints);
+         console.log(ymin + " " + ymax + " " + window.innerHeight);
+         ***/
     }
 
     this.draw = function(animation){
