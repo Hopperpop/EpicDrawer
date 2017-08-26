@@ -13,9 +13,11 @@
         </style>
     </head>
     <body>
-        <canvas id="canvasCircle" style="z-index:0" ></canvas>
-        <canvas id="canvasDrawing" style="z-index:-1"></canvas>
-
+        <canvas id="canvasCircle" style="z-index:-1" ></canvas>
+        <canvas id="canvasDrawing" style="z-index:-2"></canvas>
+        <div style="position: absolute; z-index: 0; right: 20px;bottom: 10px; height:20px;">
+          <a href="https://github.com/Hopperpop"><font color=#a0a0a0 size="2">by Hopperpop</font></a>
+        </div>
         <script>
                 var settings = {harmonics:2,
                                 duration:10,
@@ -27,7 +29,7 @@
                                 line:true,
                                 circle:true,
                                 dot:true,
-                                drawing:"",
+                                drawing:"Moore curve",
                                 autoinc:true,
                                 clear:function(){
                                   painting.clear();
@@ -59,7 +61,7 @@
                         });
                         return json;
                     })();
-                    settings.drawing = Object.keys(drawings)[0];
+                    //settings.drawing = Object.keys(drawings)[0];
 
                     //create stat gui//
                     stats.showPanel( 0 );
