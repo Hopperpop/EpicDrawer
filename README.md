@@ -1,2 +1,2 @@
 # EpicDrawer
-Epicycle web visualization
+Epicycle web visualization. https://hopperpop.github.io/EpicDrawer/
